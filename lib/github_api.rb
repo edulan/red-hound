@@ -3,8 +3,9 @@ require "base64"
 require "active_support/core_ext/object/with_options"
 
 class GithubApi
-  SERVICES_TEAM_NAME = "Services"
+  ORGANIZATION_TYPE = "Organization"
   PREVIEW_MEDIA_TYPE = "application/vnd.github.moondragon-preview+json"
+  SERVICES_TEAM_NAME = "Services"
 
   def initialize(token = ENV["HOUND_GITHUB_TOKEN"])
     @token = token

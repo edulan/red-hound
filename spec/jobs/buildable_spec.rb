@@ -1,8 +1,4 @@
 require "spec_helper"
-require "app/jobs/buildable"
-require "app/models/owner"
-require "app/models/payload"
-require "app/services/build_runner"
 
 describe Buildable do
   class TestJob
@@ -12,7 +8,12 @@ describe Buildable do
   describe '.perform' do
     it 'runs build runner' do
       build_runner = double(:build_runner, run: nil)
-      payload = double("Payload", repository_owner_id: 1, repository_owner_name: "test")
+      payload = double(
+        "Payload",
+        repository_owner_id: 1,
+        repository_owner_name: "test",
+        repository_owner_is_organization?: true
+      )
       allow(Payload).to receive(:new).and_return(payload)
       allow(BuildRunner).to receive(:new).and_return(build_runner)
       allow(Owner).to receive(:upsert)
@@ -36,15 +37,21 @@ describe Buildable do
     it "upserts repository owner" do
       github_id = "2345"
       github_name = "thoughtbot"
-      payload_data = payload_data(github_id: github_id, github_name: github_name)
+      payload_data = payload_data(
+        github_id: github_id,
+        github_name: github_name
+      )
       build_runner = double("BuildRunner", run: true)
       allow(BuildRunner).to receive(:new).and_return(build_runner)
       allow(Owner).to receive(:upsert)
 
       TestJob.perform(payload_data)
 
-      expect(Owner).to have_received(:upsert).
-        with(github_id: github_id, github_name: github_name)
+      expect(Owner).to have_received(:upsert).with(
+        github_id: github_id,
+        github_name: github_name,
+        organization: true
+      )
     end
   end
 
@@ -53,7 +60,8 @@ describe Buildable do
       "repository" => {
         "owner" => {
           "id" => github_id,
-          "login" => github_name
+          "login" => github_name,
+          "type" => "Organization"
         }
       }
     }

@@ -1,6 +1,7 @@
-require 'fast_spec_helper'
+require "fast_spec_helper"
 require "attr_extras"
-require 'app/models/payload'
+require "app/models/payload"
+require "lib/github_api"
 
 describe Payload do
   describe '#changed_files' do
@@ -90,6 +91,40 @@ describe Payload do
       payload = Payload.new(data)
 
       expect(payload.repository_owner_id).to eq 1
+    end
+  end
+
+  describe "#repository_owner_is_organization?" do
+    context "when the repository owner is a user" do
+      it "returns false" do
+        payload_json = {
+          "repository" => {
+            "owner" => {
+              "id" => 1,
+              "type" => "User"
+            }
+          }
+        }
+        payload = Payload.new(payload_json)
+
+        expect(payload.repository_owner_is_organization?).to be false
+      end
+    end
+
+    context "when the repository owner is an organization" do
+      it "returns true" do
+        payload_json = {
+          "repository" => {
+            "owner" => {
+              "id" => 1,
+              "type" => GithubApi::ORGANIZATION_TYPE
+            }
+          }
+        }
+        payload = Payload.new(payload_json)
+
+        expect(payload.repository_owner_is_organization?).to be true
+      end
     end
   end
 end

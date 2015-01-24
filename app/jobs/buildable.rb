@@ -5,7 +5,8 @@ module Buildable
     payload = Payload.new(payload_data)
     Owner.upsert(
       github_id: payload.repository_owner_id,
-      github_name: payload.repository_owner_name
+      github_name: payload.repository_owner_name,
+      organization: payload.repository_owner_is_organization?
     )
     build_runner = BuildRunner.new(payload)
     build_runner.run
