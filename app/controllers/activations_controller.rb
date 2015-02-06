@@ -7,12 +7,13 @@ class ActivationsController < ApplicationController
   before_action :check_repo_plan
 
   def create
-    if activator.activate
-      analytics.track_activated(repo)
+    activator.activate
 
-      render json: repo, status: :created
+    if activator.error.present?
+      render json: activator.error, status: 502
     else
-      head 502
+      analytics.track_activated(repo)
+      render json: repo, status: :created
     end
   end
 
@@ -25,7 +26,7 @@ class ActivationsController < ApplicationController
   end
 
   def activator
-    RepoActivator.new(repo: repo, github_token: github_token)
+    @activator ||= RepoActivator.new(repo: repo, github_token: github_token)
   end
 
   def repo

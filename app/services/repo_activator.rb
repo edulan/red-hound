@@ -1,4 +1,6 @@
 class RepoActivator
+  attr_reader :error
+
   def initialize(github_token:, repo:)
     @github_token = github_token
     @repo = repo
@@ -27,6 +29,7 @@ class RepoActivator
   def change_repository_state_quietly
     yield
   rescue Octokit::Error => error
+    @error = OctokitMessageTransformation.from_error_response(error)
     Raven.capture_exception(error)
     false
   end

@@ -97,7 +97,7 @@ describe RepoActivator do
       end
     end
 
-    context "when adding hound to rope results in an error" do
+    context "when adding hound to repo results in an error" do
       it "returns false" do
         activator = build_activator
         allow(AddHoundToRepo).to receive(:run).and_raise(Octokit::Error.new)
@@ -105,6 +105,17 @@ describe RepoActivator do
         result = activator.activate
 
         expect(result).to be_falsy
+      end
+
+      it "adds a meaningful error to the error attribute" do
+        activator = build_activator
+        allow(AddHoundToRepo).to receive(:run).and_raise(Octokit::Forbidden.new)
+        allow(OctokitMessageTransformation).to receive(:from_error_response).
+          and_return("error")
+
+        activator.activate
+
+        expect(activator.error).not_to be_nil
       end
 
       it "reports raised exception to Sentry" do

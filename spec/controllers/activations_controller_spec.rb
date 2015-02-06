@@ -6,7 +6,7 @@ describe ActivationsController, "#create" do
       token = "sometoken"
       membership = create(:membership)
       repo = membership.repo
-      activator = double(:repo_activator, activate: true)
+      activator = double(:repo_activator, activate: true, error: nil)
       allow(RepoActivator).to receive(:new).and_return(activator)
       stub_sign_in(membership.user, token)
 
@@ -28,13 +28,19 @@ describe ActivationsController, "#create" do
       token = "sometoken"
       membership = create(:membership)
       repo = membership.repo
-      activator = double(:repo_activator, activate: false).as_null_object
+      error_message = "You must be an admin to add a team membership"
+      activator = double(
+        :repo_activator,
+        activate: false,
+        error: { error: error_message }
+      ).as_null_object
       allow(RepoActivator).to receive(:new).and_return(activator)
       stub_sign_in(membership.user, token)
 
       post :create, repo_id: repo.id, format: :json
 
       expect(response.code).to eq "502"
+      expect(JSON.parse(response.body)["error"]).to eq error_message
       expect(activator).to have_received(:activate)
       expect(RepoActivator).to have_received(:new).
         with(repo: repo, github_token: token)
