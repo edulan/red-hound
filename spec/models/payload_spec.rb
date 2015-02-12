@@ -1,7 +1,6 @@
 require "fast_spec_helper"
 require "attr_extras"
 require "app/models/payload"
-require "lib/github_api"
 
 describe Payload do
   describe '#changed_files' do
@@ -117,7 +116,7 @@ describe Payload do
           "repository" => {
             "owner" => {
               "id" => 1,
-              "type" => GithubApi::ORGANIZATION_TYPE
+              "type" => "Organization"
             }
           }
         }
