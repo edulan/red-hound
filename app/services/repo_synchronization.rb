@@ -21,7 +21,7 @@ class RepoSynchronization
 
   def repo_attributes(attributes)
     {
-      private: attributes[:private],
+      private: false, # consider all repos public (avoid stripe),
       github_id: attributes[:id],
       full_github_name: attributes[:full_name],
       in_organization: attributes[:owner][:type] == ORGANIZATION_TYPE
