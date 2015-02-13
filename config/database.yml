@@ -3,6 +3,9 @@ development: &default
   encoding: unicode
   database: hound_development
   pool: 5
+  host: localhost
+  username: <%= ENV["DB_USERNAME"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
 
 test:
   <<: *default
