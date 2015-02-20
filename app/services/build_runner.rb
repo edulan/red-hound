@@ -11,7 +11,7 @@ class BuildRunner
         commit_sha: payload.head_sha,
       )
       commenter.comment_on_violations(priority_violations)
-      create_success_status
+      create_result_status
       upsert_owner
       track_subscribed_build_completed
     end
@@ -72,11 +72,27 @@ class BuildRunner
     )
   end
 
+  def create_result_status
+    if @violations.empty?
+      create_success_status
+    else
+      create_error_status
+    end
+  end
+
   def create_success_status
     github.create_success_status(
       payload.full_repo_name,
       payload.head_sha,
       "Hound has reviewed the changes."
+    )
+  end
+
+  def create_error_status
+    github.create_error_status(
+      payload.full_repo_name,
+      payload.head_sha,
+      "Hound has detected some style violations. Go and fix it."
     )
   end
 

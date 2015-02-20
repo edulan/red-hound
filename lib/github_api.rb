@@ -113,6 +113,15 @@ class GithubApi
     )
   end
 
+  def create_error_status(full_repo_name, sha, description)
+    create_status(
+      repo: full_repo_name,
+      sha: sha,
+      state: "error",
+      description: description
+    )
+  end
+
   def add_collaborator(repo_name, username)
     client.add_collaborator(repo_name, username)
   end
