@@ -26,3 +26,5 @@ Resque::Plugins::Timeout.timeout = (ENV["RESQUE_JOB_TIMEOUT"] || 120).to_i
 Resque::Server.use(Rack::Auth::Basic) do |user, password|
   password == ENV['RESQUE_ADMIN_PASSWORD']
 end
+
+Resque.redis = REDIS
