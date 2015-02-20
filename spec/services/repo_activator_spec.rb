@@ -98,7 +98,7 @@ describe RepoActivator do
       end
     end
 
-    context "when adding hound to rope results in an error" do
+    context "when adding hound to repo results in an error" do
       it "returns false" do
         activator = build_activator
         allow(AddHoundToRepo).to receive(:run).and_raise(Octokit::Error.new)
@@ -106,6 +106,18 @@ describe RepoActivator do
         result = activator.activate
 
         expect(result).to be_falsy
+      end
+
+      it "adds an error" do
+        activator = build_activator
+        error_message = "error"
+        allow(AddHoundToRepo).to receive(:run).and_raise(Octokit::Forbidden.new)
+        allow(ErrorMessageTranslation).to receive(:from_error_response).
+          and_return(error_message)
+
+        activator.activate
+
+        expect(activator.errors).to match_array([error_message])
       end
 
       it "reports raised exception to Sentry" do
@@ -145,6 +157,7 @@ describe RepoActivator do
         create(:membership, repo: repo)
         activator = build_activator(repo: repo)
         stub_github_api
+        allow(RemoveHoundFromRepo).to receive(:run).and_return(false)
 
         activator.deactivate
 
@@ -156,6 +169,7 @@ describe RepoActivator do
         create(:membership, repo: repo)
         activator = build_activator(repo: repo)
         github_api = stub_github_api
+        allow(RemoveHoundFromRepo).to receive(:run).and_return(true)
 
         activator.deactivate
 
@@ -163,10 +177,25 @@ describe RepoActivator do
         expect(repo.hook_id).to be_nil
       end
 
+      it "removes hound from repo" do
+        repo = create(:repo)
+        create(:membership, repo: repo)
+        activator = build_activator(repo: repo)
+        github_api = stub_github_api
+        allow(RemoveHoundFromRepo).
+          to receive(:run).with(repo.full_github_name, github_api)
+
+        activator.deactivate
+
+        expect(RemoveHoundFromRepo).
+          to have_received(:run).with(repo.full_github_name, github_api)
+      end
+
       it "returns true" do
         stub_github_api
         token = "githubtoken"
         allow(JobQueue).to receive(:push)
+        allow(RemoveHoundFromRepo).to receive(:run).and_return(true)
         membership = create(:membership)
         repo = membership.repo
         activator = RepoActivator.new(github_token: token, repo: repo)
