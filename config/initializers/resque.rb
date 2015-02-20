@@ -4,9 +4,7 @@ require "resque-timeout"
 require "resque/failure/redis"
 require "resque/server"
 
-Resque.configure do |config|
-  config.redis = Redis.new(url: ENV['REDIS_PROVIDER'])
-end
+Resque.redis = ENV['REDIS_PROVIDER']
 
 Resque.after_fork do
   defined?(ActiveRecord::Base) && ActiveRecord::Base.establish_connection
