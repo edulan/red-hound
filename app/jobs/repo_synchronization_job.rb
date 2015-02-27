@@ -1,20 +1,21 @@
-class RepoSynchronizationJob
-  extend Retryable
+class RepoSynchronizationJob < ActiveJob::Base
+  include Retryable
 
-  @queue = :high
+  queue_as :high
 
-  def self.before_enqueue(user_id, github_token)
-    User.set_refreshing_repos(user_id)
+  before_enqueue do |job|
+    user = job.arguments.first
+    user.set_refreshing_repos(true)
   end
 
-  def self.perform(user_id, github_token)
-    user = User.find(user_id)
-    synchronization = RepoSynchronization.new(user, github_token)
-    synchronization.start
-    user.update_attribute(:refreshing_repos, false)
-  rescue Resque::TermException
-    Resque.enqueue(self, user_id, github_token)
-  rescue => exception
-    Raven.capture_exception(exception, user: { id: user_id })
+  after_perform do |job|
+    user = job.arguments.first
+    user.set_refreshing_repos(false)
+  end
+
+  def perform(user, github_token)
+    RepoSynchronization.new(user, github_token).start
+  rescue Octokit::Unauthorized => exception
+    Raven.capture_exception(exception, user: { id: user.id })
   end
 end

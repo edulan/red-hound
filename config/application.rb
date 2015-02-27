@@ -15,5 +15,6 @@ module Houndapp
       "Rack::ETag",
       "RedirectToConfiguration"
     )
+    config.active_job.queue_adapter = :resque
   end
 end

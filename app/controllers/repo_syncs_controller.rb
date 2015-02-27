@@ -4,7 +4,7 @@ class RepoSyncsController < ApplicationController
   def create
     JobQueue.push(
       RepoSynchronizationJob,
-      current_user.id,
+      current_user,
       session[:github_token]
     )
     head 201
