@@ -1,3 +1,4 @@
+# @deprecated
 class RepoInformationJob
   extend Retryable
 

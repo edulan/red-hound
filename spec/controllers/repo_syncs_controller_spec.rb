@@ -10,6 +10,6 @@ describe RepoSyncsController, '#create' do
     post :create
 
     expect(JobQueue).to have_received(:push).
-      with(RepoSynchronizationJob, user.id, token)
+      with(RepoSynchronizationJob, user, token)
   end
 end

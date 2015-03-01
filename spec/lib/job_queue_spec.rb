@@ -3,13 +3,13 @@ require 'lib/job_queue'
 
 describe JobQueue do
   describe '.push' do
-    it 'enqueues a Resque job' do
+    it 'enqueues an ActiveJob job' do
       job_class = double(:job_class)
-      allow(Resque).to receive(:enqueue)
+      allow(job_class).to receive(:perform_later)
 
       JobQueue.push(job_class, 1, 2, 3)
 
-      expect(Resque).to have_received(:enqueue).with(job_class, 1, 2, 3)
+      expect(job_class).to have_received(:perform_later).with(1, 2, 3)
     end
   end
 end

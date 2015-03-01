@@ -19,25 +19,25 @@ describe User do
     end
   end
 
-  describe ".set_refreshing_repos" do
-    it "sets refreshing_repos to true" do
-      user = create(:user)
+  describe "#set_refreshing_repos" do
+    let(:user) { create(:user) }
 
-      User.set_refreshing_repos(user.id)
+    it "updates refreshing status" do
+      user.set_refreshing_repos(true)
 
       expect(user.reload).to be_refreshing_repos
     end
 
-    it "return true if refreshing_repos was false" do
-      user = create(:user)
+    context "when not refreshing" do
+      before { user.update_column(:refreshing_repos, false) }
 
-      expect(User.set_refreshing_repos(user.id)).to be true
+      it { expect(user.set_refreshing_repos(true)).to be true }
     end
 
-    it "return false if refreshing_repos was true" do
-      user = create(:user, refreshing_repos: true)
+    context "when refreshing" do
+      before { user.update_column(:refreshing_repos, true) }
 
-      expect(User.set_refreshing_repos(user.id)).to be false
+      it { expect(user.set_refreshing_repos(false)).to be true }
     end
   end
 

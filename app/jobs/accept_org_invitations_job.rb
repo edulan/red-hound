@@ -1,13 +1,11 @@
-class AcceptOrgInvitationsJob
-  extend Retryable
+class AcceptOrgInvitationsJob < ActiveJob::Base
+  include Retryable
 
-  @queue = :high
+  queue_as :high
 
-  def self.perform
+  def perform
     github = GithubApi.new(ENV["HOUND_GITHUB_TOKEN"])
     github.accept_pending_invitations
-  rescue Resque::TermException
-    Resque.enqueue(self)
   rescue => exception
     Raven.capture_exception(exception, {})
   end

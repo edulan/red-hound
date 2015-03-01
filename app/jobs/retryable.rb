@@ -7,8 +7,14 @@ module Retryable
   @retry_delay = 120
 
   included do
-    rescue_from(Resque::TermException) do
-      retry_job wait: @retry_delay
+    # NOTE: Use an around filter because rescue_from doesn't
+    # rescue from SignalException's
+    around_perform do |job, block|
+      begin
+        block.call
+      rescue SignalException
+        retry_job wait: @retry_delay
+      end
     end
   end
 end

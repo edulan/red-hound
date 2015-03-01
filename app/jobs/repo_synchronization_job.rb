@@ -15,7 +15,7 @@ class RepoSynchronizationJob < ActiveJob::Base
 
   def perform(user, github_token)
     RepoSynchronization.new(user, github_token).start
-  rescue Octokit::Unauthorized => exception
+  rescue => exception
     Raven.capture_exception(exception, user: { id: user.id })
   end
 end

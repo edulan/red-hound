@@ -105,10 +105,10 @@ describe BuildRunner, '#run' do
         "headsha",
         "Hound is reviewing changes."
       )
-      expect(github_api).to have_received(:create_success_status).with(
+      expect(github_api).to have_received(:create_error_status).with(
         "test/repo",
         "headsha",
-        "Hound has reviewed the changes."
+        "Hound has detected some style violations. Go and fix it."
       )
     end
 
@@ -243,7 +243,8 @@ describe BuildRunner, '#run' do
     github_api = double(
       "GithubApi",
       create_pending_status: nil,
-      create_success_status: nil
+      create_success_status: nil,
+      create_error_status: nil
     )
     allow(GithubApi).to receive(:new).and_return(github_api)
 
