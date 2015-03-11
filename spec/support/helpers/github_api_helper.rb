@@ -428,6 +428,12 @@ module GithubApiHelper
       "success",
       "Hound has reviewed the changes."
     )
+    stub_status_request(
+      repo_name,
+      sha,
+      "error",
+      "Hound has detected some style violations. Go and fix it."
+    )
   end
 
   def stub_status_request(full_repo_name, sha, state, description)

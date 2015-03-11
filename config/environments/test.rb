@@ -32,7 +32,4 @@ Houndapp::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
-
-  # Set test adapter for ActiveJob
-  config.active_job.queue_adapter = :test
 end
