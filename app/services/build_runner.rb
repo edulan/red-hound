@@ -1,4 +1,6 @@
 class BuildRunner
+  MAX_COMMENTS = ENV.fetch("MAX_COMMENTS").to_i
+
   pattr_initialize :payload
 
   def run
@@ -28,7 +30,7 @@ class BuildRunner
   end
 
   def priority_violations
-    violations.take(ENV["MAX_COMMENTS"].to_i)
+    violations.take(MAX_COMMENTS)
   end
 
   def style_checker
@@ -68,7 +70,7 @@ class BuildRunner
     github.create_pending_status(
       payload.full_repo_name,
       payload.head_sha,
-      "Hound is reviewing changes."
+      I18n.t(:pending_status)
     )
   end
 
@@ -84,7 +86,7 @@ class BuildRunner
     github.create_success_status(
       payload.full_repo_name,
       payload.head_sha,
-      "Hound has reviewed the changes."
+      I18n.t(:success_status)
     )
   end
 

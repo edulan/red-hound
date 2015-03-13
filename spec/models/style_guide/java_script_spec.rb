@@ -102,6 +102,24 @@ describe StyleGuide::JavaScript do
           with(anything, thoughtbot_configuration)
       end
     end
+
+    context "with ES6 support enabled" do
+      it "respects ES6" do
+        repo_config = double("RepoConfig", for: { esnext: true })
+        line = double("Line", patch_position: 1)
+        file = double(
+          "File",
+          filename: "using_es6_syntax.js",
+          line_at: line,
+          content: "import Ember from 'ember'"
+        )
+
+        violations = violations_in(file, repo_config)
+
+        violation = violations.first
+        expect(violation.messages).to match_array(["Missing semicolon."])
+      end
+    end
   end
 
   describe "#file_included?" do
@@ -132,15 +150,17 @@ describe StyleGuide::JavaScript do
     it "matches a glob pattern" do
       repo_config = double(
         "RepoConfig",
-        ignored_javascript_files: ["app/assets/javascripts/*.js"]
+        ignored_javascript_files: [
+          "app/assets/javascripts/*.js",
+          "vendor/*",
+        ]
       )
-
       style_guide = StyleGuide::JavaScript.new(repo_config, "ralph")
-      file = double(:file, filename: "app/assets/javascripts/bar.js")
+      file1 = double(:file, filename: "app/assets/javascripts/bar.js")
+      file2 = double(:file, filename: "vendor/assets/javascripts/foo.js")
 
-      included = style_guide.file_included?(file)
-
-      expect(included).to be false
+      expect(style_guide.file_included?(file1)).to be false
+      expect(style_guide.file_included?(file2)).to be false
     end
   end
 

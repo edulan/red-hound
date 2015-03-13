@@ -154,6 +154,27 @@ describe RepoConfig do
           "LineLength" => { "Max" => 90 },
         )
       end
+
+      context "with unsafe yaml" do
+        it "raises error" do
+          config = config_for_file("config/rubocop.yml", <<-EOS.strip_heredoc)
+            StringLiterals: !ruby/object
+              foo:
+          EOS
+
+          expect { config.for("ruby") }.to raise_error Psych::DisallowedClass
+        end
+      end
+
+      context "with ruby regex in yaml" do
+        it "does not raise an error" do
+          config = config_for_file("config/rubocop.yml", <<-EOS.strip_heredoc)
+            WordRegex: !ruby/regexp /\A[\p{Word}]+\z/
+          EOS
+
+          expect { config.for("ruby") }.not_to raise_error
+        end
+      end
     end
 
     context "when CoffeeScript config file is specified" do
@@ -256,6 +277,13 @@ describe RepoConfig do
     end
 
     describe "#jshint_ignore_file" do
+      it "return default paths" do
+        commit = stub_commit(hound_config: "")
+        ignored_files = RepoConfig.new(commit).ignored_javascript_files
+
+        expect(ignored_files).to eq ["vendor/*"]
+      end
+
       context "no specific configuration is present" do
         it "attempts to load a .jshintignore file" do
           ignored_files = <<-EOIGNORE.strip_heredoc
@@ -309,6 +337,7 @@ describe RepoConfig do
     def stub_commit(configuration)
       commit = double("Commit")
       hound_config = configuration.delete(:hound_config)
+      allow(commit).to receive(:file_content)
       allow(commit).to receive(:file_content).
         with(RepoConfig::HOUND_CONFIG).and_return(hound_config)
 

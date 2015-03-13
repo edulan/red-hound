@@ -5,14 +5,17 @@
 
 @import "variables";
 @import "animations";
+@import "extends";
 @import "application/helpers";
 
 @import "button_mixins";
 
 @import "base";
+@import "pages/docs";
 @import "accounts/show";
 @import "application/footer";
 @import "application/header";
 @import "home/index";
 @import "repos/index";
+@import "repos/onboarding";
 @import "sessions/new";

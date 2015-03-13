@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150217090319) do
+ActiveRecord::Schema.define(version: 20150225001118) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -67,6 +67,15 @@ ActiveRecord::Schema.define(version: 20150217090319) do
   add_index "repos", ["github_id"], name: "index_repos_on_github_id", using: :btree
   add_index "repos", ["owner_id"], name: "index_repos_on_owner_id", using: :btree
 
+  create_table "style_configs", force: :cascade do |t|
+    t.boolean "enabled",  default: true, null: false
+    t.string  "language",                null: false
+    t.text    "rules",                   null: false
+    t.integer "owner_id",                null: false
+  end
+
+  add_index "style_configs", ["owner_id", "language"], name: "index_style_configs_on_owner_id_and_language", unique: true, using: :btree
+
   create_table "subscriptions", force: :cascade do |t|
     t.datetime "created_at",                                                   null: false
     t.datetime "updated_at",                                                   null: false
@@ -77,7 +86,7 @@ ActiveRecord::Schema.define(version: 20150217090319) do
     t.decimal  "price",                  precision: 8, scale: 2, default: 0.0, null: false
   end
 
-  add_index "subscriptions", ["repo_id"], name: "index_subscriptions_on_repo_id", using: :btree
+  add_index "subscriptions", ["repo_id"], name: "index_subscriptions_on_repo_id", unique: true, where: "(deleted_at IS NULL)", using: :btree
   add_index "subscriptions", ["user_id"], name: "index_subscriptions_on_user_id", using: :btree
 
   create_table "users", force: :cascade do |t|
@@ -107,4 +116,5 @@ ActiveRecord::Schema.define(version: 20150217090319) do
   add_foreign_key "memberships", "repos"
   add_foreign_key "memberships", "users"
   add_foreign_key "repos", "owners"
+  add_foreign_key "style_configs", "owners"
 end

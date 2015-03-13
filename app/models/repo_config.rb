@@ -33,11 +33,11 @@ class RepoConfig
   def ignored_javascript_files
     ignore_file_content = load_javascript_ignore
 
-    if ignore_file_content.present?
-      ignore_file_content.split("\n")
-    else
-      []
+    if ignore_file_content.blank?
+      ignore_file_content = File.read("config/style_guides/.jshintignore")
     end
+
+    ignore_file_content.split("\n")
   end
 
   private
@@ -93,7 +93,7 @@ class RepoConfig
   end
 
   def parse_yaml(content)
-    YAML.load(content)
+    YAML.safe_load(content, [Regexp])
   rescue Psych::SyntaxError
     {}
   end

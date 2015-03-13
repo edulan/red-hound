@@ -1,7 +1,10 @@
 language: ruby
 sudo: false
 cache: bundler
-rvm: 2.2.0
+rvm: 2.2.1
+
+addons:
+  postgresql: "9.3"
 
 before_install:
   - export DISPLAY=:99.0

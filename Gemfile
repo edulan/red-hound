@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "2.2.0"
+ruby "2.2.1"
 
 gem "active_model_serializers", "0.8.3"
 gem "analytics-ruby", "~> 2.0.0", require: "segment/analytics"
@@ -22,14 +22,13 @@ gem "omniauth-github"
 gem "paranoia", "~> 2.0"
 gem "pg"
 gem "rails", "4.2"
-gem "responders", "~> 2.0"
 gem "resque", "~> 1.25.0"
 gem "resque-retry"
 gem "resque-sentry"
 gem "resque-timeout"
 gem "rubocop", "0.29.1"
 gem "sass-rails"
-gem "scss-lint", require: false
+gem "scss-lint", "0.34.0", require: false
 gem "sentry-raven"
 gem "stripe"
 gem "uglifier", ">= 1.0.3"

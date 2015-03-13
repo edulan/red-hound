@@ -6,7 +6,6 @@ require "active_support/core_ext/object/with_options"
 class GithubApi
   ORGANIZATION_TYPE = "Organization"
   PREVIEW_MEDIA_TYPE = "application/vnd.github.moondragon-preview+json"
-  SERVICES_TEAM_NAME = "Services"
 
   attr_reader :file_cache, :token
 
@@ -70,10 +69,7 @@ class GithubApi
   end
 
   def pull_request_comments(full_repo_name, pull_request_number)
-    repo_path = Octokit::Repository.path full_repo_name
-
-    # client.pull_request_comments does not do auto-pagination.
-    client.paginate "#{repo_path}/pulls/#{pull_request_number}/comments"
+    client.pull_request_comments(full_repo_name, pull_request_number)
   end
 
   def pull_request_files(full_repo_name, number)
