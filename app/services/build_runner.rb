@@ -97,7 +97,6 @@ class BuildRunner
       payload.full_repo_name,
       payload.head_sha,
       I18n.t(:error_status)
-      #"Hound has detected some style violations. Go and fix it."
     )
   end
 

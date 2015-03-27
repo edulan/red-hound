@@ -21,7 +21,7 @@ class RepoSynchronization
     owner = upsert_owner(attributes[:owner])
 
     {
-      private: false, # consider all repos public (avoid stripe),
+      private: attributes[:private],
       github_id: attributes[:id],
       full_github_name: attributes[:full_name],
       in_organization: attributes[:owner][:type] == GithubApi::ORGANIZATION_TYPE,
