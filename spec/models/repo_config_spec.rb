@@ -1,6 +1,6 @@
 require "attr_extras"
 require "json"
-require "fast_spec_helper"
+require "rails_helper"
 require "app/models/repo_config"
 
 describe RepoConfig do
@@ -155,6 +155,96 @@ describe RepoConfig do
         )
       end
 
+      context "with a list of inherit_from files" do
+        it "returns violations" do
+          hound_config = <<-EOS.strip_heredoc
+            ruby:
+              enabled: true
+              config_file: .rubocop.yml
+          EOS
+
+          rubocop = <<-EOS.strip_heredoc
+            inherit_from:
+              - config/base.yml
+              - config/overrides.yml
+            Style/Encoding:
+              Enabled: true
+          EOS
+
+          base = <<-EOS.strip_heredoc
+            LineLength:
+              Max: 40
+          EOS
+
+          overrides = <<-EOS.strip_heredoc
+            Style/HashSyntax:
+              EnforcedStyle: hash_rockets
+            Style/Encoding:
+              Enabled: false
+          EOS
+
+          commit = stub_commit(
+            hound_config: hound_config,
+            ".rubocop.yml" => rubocop,
+            "config/base.yml" => base,
+            "config/overrides.yml" => overrides
+          )
+
+          config = RepoConfig.new(commit)
+
+          result = config.for("ruby")
+
+          expect(result).to eq(
+            "Style/HashSyntax" => { "EnforcedStyle" => "hash_rockets" },
+            "LineLength" => { "Max" => 40 },
+            "Style/Encoding" => { "Enabled" => true }
+          )
+        end
+      end
+
+      context "with a single inherit_from entry" do
+        it "returns violations" do
+          hound_config = <<-EOS.strip_heredoc
+            ruby:
+              config_file: .rubocop.yml
+          EOS
+          rubocop = <<-EOS.strip_heredoc
+            inherit_from: config/base.yml
+
+            Style/Encoding:
+              Enabled: true
+          EOS
+          base = <<-EOS.strip_heredoc
+            LineLength:
+              Max: 40
+          EOS
+          commit = stub_commit(
+            hound_config: hound_config,
+            ".rubocop.yml" => rubocop,
+            "config/base.yml" => base,
+          )
+          config = RepoConfig.new(commit)
+
+          result = config.for("ruby")
+
+          expect(result).to eq(
+            "LineLength" => { "Max" => 40 },
+            "Style/Encoding" => { "Enabled" => true },
+          )
+        end
+      end
+
+      context "with bad syntax" do
+        it "raises RepoConfig::ParserError error" do
+          config = config_for_file("config/rubocop.yml", <<-EOS.strip_heredoc)
+            StringLiterals: !ruby/object
+              ;foo:
+          EOS
+
+          expect { config.for("ruby") }.to raise_error(RepoConfig::ParserError)
+        end
+      end
+
       context "with unsafe yaml" do
         it "raises error" do
           config = config_for_file("config/rubocop.yml", <<-EOS.strip_heredoc)
@@ -162,7 +252,8 @@ describe RepoConfig do
               foo:
           EOS
 
-          expect { config.for("ruby") }.to raise_error Psych::DisallowedClass
+          expect { config.for("ruby") }.
+            to raise_error RepoConfig::ParserError, /Psych::DisallowedClass/
         end
       end
 
@@ -218,9 +309,8 @@ describe RepoConfig do
             }
           EOS
 
-          result = config.for("java_script")
-
-          expect(result).to eq({})
+          expect { config.for("java_script") }.
+            to raise_error(RepoConfig::ParserError)
         end
       end
     end

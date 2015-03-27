@@ -7,6 +7,7 @@ class BuildRunner
     if repo && relevant_pull_request?
       track_subscribed_build_started
       create_pending_status
+      upsert_owner
       repo.builds.create!(
         violations: violations,
         pull_request_number: payload.pull_request_number,
@@ -14,9 +15,10 @@ class BuildRunner
       )
       commenter.comment_on_violations(priority_violations)
       create_result_status
-      upsert_owner
       track_subscribed_build_completed
     end
+  rescue RepoConfig::ParserError
+    create_config_error_status
   end
 
   private
@@ -94,19 +96,34 @@ class BuildRunner
     github.create_error_status(
       payload.full_repo_name,
       payload.head_sha,
-      "Hound has detected some style violations. Go and fix it."
+      I18n.t(:error_status)
+      #"Hound has detected some style violations. Go and fix it."
+    )
+  end
+
+  def create_config_error_status
+    github.create_error_status(
+      payload.full_repo_name,
+      payload.head_sha,
+      I18n.t(:config_error_status),
+      configuration_url
     )
   end
 
   def upsert_owner
-    Owner.upsert(
+    owner = Owner.upsert(
       github_id: payload.repository_owner_id,
       name: payload.repository_owner_name,
       organization: payload.repository_owner_is_organization?
     )
+    repo.update(owner: owner)
   end
 
   def github
     @github ||= GithubApi.new(ENV["HOUND_GITHUB_TOKEN"])
+  end
+
+  def configuration_url
+    Rails.application.routes.url_helpers.configuration_url(host: ENV["HOST"])
   end
 end

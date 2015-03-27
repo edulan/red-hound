@@ -9,6 +9,8 @@ class RepoConfig
     "scss" => "yaml",
   }
 
+  class ParserError < StandardError; end
+
   pattr_initialize :commit
 
   def enabled_for?(language)
@@ -23,7 +25,7 @@ class RepoConfig
       config_file_path = config_path_for(language)
 
       if config_file_path
-        load_file(config_file_path, FILE_TYPES.fetch(language))
+        load_config(config_file_path, FILE_TYPES.fetch(language))
       else
         {}
       end
@@ -75,6 +77,18 @@ class RepoConfig
       hound_config[language]["config_file"]
   end
 
+  def load_config(config_file_path, file_type)
+    main_config = load_file(config_file_path, file_type)
+    inherit_from = Array(main_config.fetch("inherit_from", []))
+
+    inherited_config = inherit_from.reduce({}) do |config, ancestor_file_path|
+      ancestor_config = load_file(ancestor_file_path, file_type)
+      config.merge(ancestor_config)
+    end
+
+    inherited_config.merge(main_config.except("inherit_from"))
+  end
+
   def load_file(file_path, file_type)
     config_file_content = commit.file_content(file_path)
 
@@ -94,13 +108,18 @@ class RepoConfig
 
   def parse_yaml(content)
     YAML.safe_load(content, [Regexp])
-  rescue Psych::SyntaxError
-    {}
+  rescue Psych::Exception => e
+    raise_repo_config_parser_error(e)
   end
 
   def parse_json(content)
     JSON.parse(content)
-  rescue JSON::ParserError
-    {}
+  rescue JSON::ParserError => e
+    raise_repo_config_parser_error(e)
+  end
+
+  def raise_repo_config_parser_error(e)
+    message = "#{e.class}: #{e.message}"
+    raise RepoConfig::ParserError.new(message)
   end
 end

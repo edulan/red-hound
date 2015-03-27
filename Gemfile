@@ -21,7 +21,7 @@ gem "octokit"
 gem "omniauth-github"
 gem "paranoia", "~> 2.0"
 gem "pg"
-gem "rails", "4.2"
+gem "rails", "4.2.1"
 gem "resque", "~> 1.25.0"
 gem "resque-retry"
 gem "resque-sentry"
@@ -45,7 +45,7 @@ group :development, :test do
   gem "jasmine-rails"
   gem "konacha"
   gem "poltergeist"
-  gem "rspec-rails", ">= 2.14"
+  gem "rspec-rails", ">= 3.2"
 end
 
 group :test do
